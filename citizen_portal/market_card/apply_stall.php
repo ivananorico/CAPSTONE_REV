@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'market_db.php';
+require_once '../../db/Market/market_db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -25,7 +25,8 @@ try {
     $stmt->execute();
     $renter = $stmt->fetch(); // only fetch one row
 } catch (PDOException $e) {
-    die("Error fetching data: " . $e->getMessage());
+    // If renters table doesn't exist yet, just continue
+    $renter = null;
 }
 ?>
 
@@ -51,28 +52,18 @@ try {
         <main class="apply-stall-main">
             <?php if (!$renter): ?>
                 <div class="no-application-section">
-                    <p class="application-text">Click the button below to apply for a stall.</p>
-                    <a href="../../market_portal/market_portal.php" class="apply-button">Apply Stall</a>
+                    <p class="application-text">Click the button below to apply for a market stall rental</p>
+                    <a href="../../market_portal/market_portal.php?user_id=<?php echo $user_id; ?>&name=<?php echo urlencode($full_name); ?>&email=<?php echo urlencode($email); ?>" 
+                       class="apply-button">
+                        Apply
+                    </a>
                 </div>
             <?php else: ?>
-                <div class="application-card">
-                    <h3 class="card-title">Your Stall Application</h3>
-                    <div class="card-details">
-                        <p class="detail-item">
-                            <strong>Stall:</strong> 
-                            <span><?= htmlspecialchars($renter['stall_name']) ?></span>
-                        </p>
-                        <p class="detail-item">
-                            <strong>Market Map:</strong> 
-                            <span><?= htmlspecialchars($renter['map_name']) ?></span>
-                        </p>
-                        <p class="detail-item">
-                            <strong>Status:</strong> 
-                            <span class="status-text"><?= htmlspecialchars(ucfirst($renter['status'])) ?></span>
-                        </p>
-                    </div>
-                    
-                    <a href="view_apply_stall.php?renter_id=<?= $renter['user_id'] ?>" class="view-details-button">View Details</a>
+                <div class="no-application-section">
+                    <p class="application-text">You have already applied for a stall. View your application details.</p>
+                    <a href="view_apply_stall.php?renter_id=<?= $renter['user_id'] ?>" class="apply-button">
+                        View Application
+                    </a>
                 </div>
             <?php endif; ?>
         </main>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php';
+require_once '../db/user_db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -8,6 +8,8 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $full_name = $_SESSION['full_name'];
+$user_id = $_SESSION['user_id'];
+$email = $_SESSION['email'];
 ?>
 
 <!DOCTYPE html>
@@ -32,7 +34,7 @@ $full_name = $_SESSION['full_name'];
         
         <div class="cards-grid">
             <!-- Market Stall Rental Card -->
-            <div class="card" onclick="location.href='market-card/apply_stall.php'">
+            <div class="card" onclick="location.href='market_card/apply_stall.php'">
                 <div class="card-icon">🏪</div>
                 <h3>Market Stall Rental</h3>
                 <p>Apply for market stall rentals and manage your existing stalls</p>

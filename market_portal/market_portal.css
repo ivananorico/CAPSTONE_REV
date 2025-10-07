@@ -1,0 +1,331 @@
+/* Market Portal CSS - Scoped to .portal-container */
+:root {
+    --primary-color: #004aad;
+    --primary-dark: #00388a;
+    --primary-light: #3a6fc8;
+    --accent-color: #ff6b35;
+    --accent-hover: #e55a2b;
+    --text-light: #ffffff;
+    --text-dark: #2c3e50;
+    --text-gray: #666;
+    --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --card-bg: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    --border-radius: 8px;
+}
+
+.portal-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--background);
+    min-height: 100vh;
+    color: var(--text-dark);
+    padding: 30px 20px 20px;
+    text-align: center;
+}
+
+/* Header */
+.portal-container .portal-header {
+    margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out;
+}
+.portal-container .portal-header h1 {
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+.portal-container .portal-header p {
+    color: var(--text-gray);
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* User Info */
+.portal-container .user-info {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-light);
+    border-left: 5px solid var(--accent-color);
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    animation: fadeInUp 0.6s ease-out;
+    animation-delay: 0.1s;
+}
+.portal-container .user-info h3 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.portal-container .user-info p {
+    color: var(--text-gray);
+    font-size: 1rem;
+}
+
+/* Filter Section */
+.portal-container .filter-section {
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-light);
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    animation: fadeInUp 0.6s ease-out;
+    animation-delay: 0.2s;
+}
+.portal-container .filter-section h3 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.portal-container .map-filter {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.portal-container .map-select {
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    background: var(--card-bg);
+    cursor: pointer;
+    min-width: 250px;
+    transition: var(--transition);
+}
+.portal-container .map-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+/* Status Legend */
+.portal-container .status-legend {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    max-width: 800px;
+    margin: 0 auto 25px auto;
+    border: 2px solid var(--accent-color);
+    box-shadow: var(--shadow-light);
+    animation: fadeInUp 0.6s ease-out;
+    animation-delay: 0.3s;
+}
+.portal-container .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.portal-container .legend-color {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 2px solid white;
+    box-shadow: var(--shadow-light);
+}
+.portal-container .legend-available { background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%); }
+.portal-container .legend-occupied { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); }
+.portal-container .legend-reserved { background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); }
+.portal-container .legend-maintenance { background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%); }
+
+/* Market Map Display */
+.portal-container .market-map-display {
+    width: 800px;
+    height: 600px;
+    border: 3px solid var(--accent-color);
+    margin: 20px auto;
+    position: relative;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #f8f9fa;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    animation: fadeInUp 0.6s ease-out;
+    animation-delay: 0.4s;
+}
+
+/* Stall Markers */
+.portal-container .stall-marker {
+    width: 63px;
+    height: 58px;
+    color: white;
+    font-weight: bold;
+    position: absolute;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    box-shadow: var(--shadow-light);
+    border: 2px solid white;
+    text-align: center;
+    line-height: 1.2;
+    transition: var(--transition);
+}
+.portal-container .stall-marker:hover {
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.portal-container .stall-marker.available { background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%); }
+.portal-container .stall-marker.occupied { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); }
+.portal-container .stall-marker.reserved { background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); }
+.portal-container .stall-marker.maintenance { background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%); }
+.portal-container .stall-name { font-size: 10px; font-weight: 600; margin-bottom: 2px; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
+.portal-container .stall-price { font-size: 9px; font-weight: 500; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
+
+/* Modal */
+.portal-container .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.portal-container .modal-content {
+    background: var(--card-bg);
+    border: 3px solid var(--accent-color);
+    border-radius: 12px;
+    padding: 2rem;
+    min-width: 400px; max-width: 500px;
+    box-shadow: var(--shadow);
+    animation: modalSlideIn 0.3s ease-out;
+}
+.portal-container .modal-header { margin-bottom: 1.5rem; text-align: center; }
+.portal-container .modal-header h3 { color: var(--accent-color); font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+.portal-container .stall-details { text-align: left; margin-bottom: 1.5rem; }
+.portal-container .detail-row { display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0; }
+.portal-container .detail-label { font-weight: 600; color: var(--text-dark); }
+.portal-container .detail-value { color: var(--text-gray); font-weight: 500; }
+.portal-container .modal-buttons { display: flex; gap: 1rem; justify-content: center; }
+.portal-container .btn-apply { background: linear-gradient(135deg, var(--accent-color) 0%, #ff8e53 100%); color: var(--text-light); border: none; padding: 10px 20px; border-radius: var(--border-radius); font-weight: 600; cursor: pointer; transition: var(--transition); }
+.portal-container .btn-apply:hover { transform: translateY(-2px); }
+.portal-container .btn-cancel { background: #e0e0e0; color: var(--text-dark); border: none; padding: 10px 20px; border-radius: var(--border-radius); font-weight: 500; cursor: pointer; transition: var(--transition); }
+.portal-container .btn-cancel:hover { background: #cfcfcf; }
+
+/* Animations */
+@keyframes fadeInUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+@keyframes modalSlideIn { from {opacity:0; transform:translateY(-50px);} to {opacity:1; transform:translateY(0);} }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .portal-container .market-map-display { width: 95%; height: 400px; }
+}
+@media (max-width: 576px) {
+    .portal-container .market-map-display { height: 300px; }
+    .portal-container .map-select { min-width: 100%; max-width: 250px; }
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    display: none; /* hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Modal content box */
+.modal-content {
+    background-color: #fff;
+    color: #333;
+    padding: 20px;
+    width: 400px;
+    max-width: 90%;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal header */
+.modal-header {
+    margin-bottom: 15px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.modal-header p {
+    margin: 5px 0 0 0;
+    color: #555;
+}
+
+/* Stall details inside modal */
+.stall-details .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+
+.detail-label {
+    font-weight: bold;
+}
+
+.detail-value {
+    color: #333;
+}
+
+/* Modal buttons */
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-apply, .btn-cancel {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-apply {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-apply:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-cancel {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Animation for modal */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
