@@ -20,21 +20,30 @@ try {
         throw new Exception("Map ID is required");
     }
 
-    $pdo->beginTransaction();
+    // Get the first available class ID as default
+    $defaultClassStmt = $pdo->query("SELECT class_id FROM stall_classes ORDER BY price ASC LIMIT 1");
+    $defaultClass = $defaultClassStmt->fetch(PDO::FETCH_ASSOC);
+    $defaultClassId = $defaultClass ? $defaultClass['class_id'] : null;
 
     // Update existing stalls and insert new ones
     $updateStmt = $pdo->prepare("
         UPDATE stalls 
-        SET name = ?, pos_x = ?, pos_y = ?, price = ?, height = ?, length = ?, width = ?, status = ?
+        SET name = ?, pos_x = ?, pos_y = ?, price = ?, height = ?, length = ?, width = ?, status = ?, class_id = ?
         WHERE id = ? AND map_id = ?
     ");
 
     $insertStmt = $pdo->prepare("
-        INSERT INTO stalls (map_id, name, pos_x, pos_y, price, height, length, width, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO stalls (map_id, name, pos_x, pos_y, price, height, length, width, status, class_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
+    $updatedCount = 0;
+    $insertedCount = 0;
+
     foreach ($stalls as $stall) {
+        // Determine class_id - use provided, or default, or null if no classes exist
+        $class_id = $stall['class_id'] ?? $defaultClassId;
+        
         if (isset($stall['id']) && !isset($stall['isNew'])) {
             // Update existing stall
             $updateStmt->execute([
@@ -46,10 +55,12 @@ try {
                 $stall['length'] ?? 0,
                 $stall['width'] ?? 0,
                 $stall['status'] ?? 'available',
+                $class_id,
                 $stall['id'],
                 $mapId
             ]);
-        } else {
+            $updatedCount++;
+        } else if (isset($stall['isNew'])) {
             // Insert new stall
             $insertStmt->execute([
                 $mapId,
@@ -60,23 +71,25 @@ try {
                 $stall['height'] ?? 0,
                 $stall['length'] ?? 0,
                 $stall['width'] ?? 0,
-                $stall['status'] ?? 'available'
+                $stall['status'] ?? 'available',
+                $class_id
             ]);
+            $insertedCount++;
         }
     }
 
-    $pdo->commit();
-
     echo json_encode([
         "status" => "success",
-        "message" => "Map updated successfully"
+        "message" => "Map updated successfully",
+        "updated" => $updatedCount,
+        "inserted" => $insertedCount
     ]);
 
 } catch (Exception $e) {
-    $pdo->rollBack();
     http_response_code(400);
     echo json_encode([
         "status" => "error",
         "message" => $e->getMessage()
     ]);
 }
+?>

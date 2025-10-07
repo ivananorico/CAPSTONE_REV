@@ -8,6 +8,7 @@ export default function MapEditor() {
   
   const [mapData, setMapData] = useState(null);
   const [stalls, setStalls] = useState([]);
+  const [stallClasses, setStallClasses] = useState([]);
   const [stallCount, setStallCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,9 +21,10 @@ export default function MapEditor() {
   const modalRef = useRef(null);
   const API_BASE = "http://localhost/revenue/backend/Market/MarketCreator";
 
-  // Fetch map and stalls data
+  // Fetch map, stalls, and stall classes data
   useEffect(() => {
     fetchMapData();
+    fetchStallClasses();
   }, [id]);
 
   const fetchMapData = async () => {
@@ -45,9 +47,28 @@ export default function MapEditor() {
     }
   };
 
+  const fetchStallClasses = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/get_stall_classes.php`);
+      const data = await res.json();
+      if (data.status === "success") {
+        setStallClasses(data.classes);
+      } else {
+        console.error("Failed to fetch stall classes from database");
+        setStallClasses([]);
+      }
+    } catch (err) {
+      console.error("Error fetching stall classes:", err);
+      setStallClasses([]);
+    }
+  };
+
   // Add a new stall
   const addStall = () => {
     const newCount = stallCount + 1;
+    // Use the first available class from database, or empty if none
+    const defaultClass = stallClasses.length > 0 ? stallClasses[stallClasses.length - 1] : null;
+    
     setStallCount(newCount);
     setStalls([
       ...stalls,
@@ -56,7 +77,9 @@ export default function MapEditor() {
         pos_x: 50, 
         pos_y: 50, 
         status: "available", 
-        price: 0, 
+        class_id: defaultClass ? defaultClass.class_id : null,
+        class_name: defaultClass ? defaultClass.class_name : "No Class",
+        price: defaultClass ? defaultClass.price : 0,
         height: 0, 
         length: 0, 
         width: 0,
@@ -65,50 +88,37 @@ export default function MapEditor() {
     ]);
   };
 
- // Delete a stall
-const deleteStall = async (index) => {
-  const stall = stalls[index];
-  if (window.confirm(`Delete ${stall.name}?`)) {
-    // If stall has an ID (exists in database), delete from backend
-    if (stall.id && !stall.isNew) {
-      try {
-        console.log("Deleting stall ID:", stall.id); // Debug log
-        
-        const formData = new FormData();
-        formData.append("stall_id", stall.id);
+  // Delete a stall
+  const deleteStall = async (index) => {
+    const stall = stalls[index];
+    if (window.confirm(`Delete ${stall.name}?`)) {
+      // If stall has an ID (exists in database), delete from backend
+      if (stall.id && !stall.isNew) {
+        try {
+          const formData = new FormData();
+          formData.append("stall_id", stall.id);
 
-        const res = await fetch(`${API_BASE}/delete_stall.php`, {
-          method: "POST",
-          body: formData
-        });
-        
-        console.log("Delete response status:", res.status); // Debug log
-        
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          const res = await fetch(`${API_BASE}/delete_stall.php`, {
+            method: "POST",
+            body: formData
+          });
+          
+          const data = await res.json();
+          if (data.status !== "success") {
+            throw new Error(data.message || "Failed to delete stall");
+          }
+        } catch (err) {
+          alert("Delete failed: " + err.message);
+          return;
         }
-        
-        const data = await res.json();
-        console.log("Delete response data:", data); // Debug log
-        
-        if (data.status !== "success") {
-          throw new Error(data.message || "Failed to delete stall");
-        }
-        
-        console.log("Stall deleted successfully"); // Debug log
-      } catch (err) {
-        console.error("Delete error details:", err); // Debug log
-        alert("Delete failed: " + err.message);
-        return;
       }
+      
+      // Remove from local state
+      const updated = stalls.filter((_, i) => i !== index);
+      setStalls(updated);
+      setStallCount(updated.length);
     }
-    
-    // Remove from local state
-    const updated = stalls.filter((_, i) => i !== index);
-    setStalls(updated);
-    setStallCount(updated.length);
-  }
-};
+  };
 
   // Save updates to backend
   const saveUpdates = async () => {
@@ -165,8 +175,8 @@ const deleteStall = async (index) => {
     setSelectedStallIndex(index);
     const viewportX = e.clientX;
     const viewportY = e.clientY;
-    const modalWidth = 300;
-    const modalHeight = 400;
+    const modalWidth = 350;
+    const modalHeight = 500;
 
     let x = viewportX;
     let y = viewportY;
@@ -182,6 +192,25 @@ const deleteStall = async (index) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       setModalOpen(false);
     }
+  };
+
+  // Update stall class
+  const updateStallClass = (class_id) => {
+    const selectedClass = stallClasses.find(cls => cls.class_id == class_id);
+    if (selectedClass) {
+      const updated = [...stalls];
+      updated[selectedStallIndex].class_id = selectedClass.class_id;
+      updated[selectedStallIndex].class_name = selectedClass.class_name;
+      // Don't auto-update price when class changes
+      setStalls(updated);
+    }
+  };
+
+  // Update price separately
+  const updateStallPrice = (price) => {
+    const updated = [...stalls];
+    updated[selectedStallIndex].price = parseFloat(price) || 0;
+    setStalls(updated);
   };
 
   if (loading) return (
@@ -248,7 +277,8 @@ const deleteStall = async (index) => {
           >
             <div className="stall-content">
               <div className="stall-name">{stall.name}</div>
-              <div className="stall-price">{stall.price > 0 ? `₱${stall.price}` : ""}</div>
+              <div className="stall-class">Class: {stall.class_name}</div>
+              <div className="stall-price">₱{stall.price}</div>
               <div className="stall-size">{stall.length}m × {stall.width}m × {stall.height}m</div>
             </div>
 
@@ -276,18 +306,34 @@ const deleteStall = async (index) => {
             style={{ left: `${modalPos.x}px`, top: `${modalPos.y}px` }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h4>Edit Stall Details</h4>
+            <h4>Edit Stall Details - {stalls[selectedStallIndex]?.name}</h4>
 
-            <label>Price (₱)</label>
+            <label>Stall Class</label>
+            <select
+              value={stalls[selectedStallIndex]?.class_id || ""}
+              onChange={(e) => updateStallClass(e.target.value)}
+            >
+              <option value="">Select a class...</option>
+              {stallClasses.map((cls) => (
+                <option key={cls.class_id} value={cls.class_id}>
+                  Class {cls.class_name} - ₱{cls.price} ({cls.description})
+                </option>
+              ))}
+            </select>
+
+            <div className="current-class-info">
+              <strong>Selected: Class {stalls[selectedStallIndex]?.class_name || "None"}</strong>
+              <br />
+              <span>Suggested Price: ₱{stallClasses.find(cls => cls.class_id == stalls[selectedStallIndex]?.class_id)?.price || 0}</span>
+            </div>
+
+            <label>Custom Price (₱)</label>
             <input
               type="number"
               value={stalls[selectedStallIndex]?.price || 0}
-              onChange={(e) => {
-                const updated = [...stalls];
-                updated[selectedStallIndex].price = parseFloat(e.target.value) || 0;
-                setStalls(updated);
-              }}
+              onChange={(e) => updateStallPrice(e.target.value)}
               step="0.01"
+              min="0"
             />
 
             <label>Height (m)</label>

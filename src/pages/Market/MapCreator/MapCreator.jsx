@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./MapCreator.css";
 
@@ -9,6 +9,7 @@ export default function Market1() {
   const [mapImage, setMapImage] = useState(null); // Preview only
   const [mapFile, setMapFile] = useState(null);   // Actual file to upload
   const [isFinished, setIsFinished] = useState(false);
+  const [stallClasses, setStallClasses] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStallIndex, setSelectedStallIndex] = useState(null);
@@ -18,6 +19,36 @@ export default function Market1() {
   const modalRef = useRef(null);
   const navigate = useNavigate();
   const API_BASE = "http://localhost/revenue/backend/Market/MarketCreator";
+
+  // Fetch stall classes from backend
+  useEffect(() => {
+    fetchStallClasses();
+  }, []);
+
+  const fetchStallClasses = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/get_stall_classes.php`);
+      const data = await res.json();
+      if (data.status === "success") {
+        setStallClasses(data.classes);
+      } else {
+        // Fallback default classes
+        setStallClasses([
+          { class_id: 1, class_name: "A", price: 1000, description: "Premium Location" },
+          { class_id: 2, class_name: "B", price: 750, description: "Standard Location" },
+          { class_id: 3, class_name: "C", price: 500, description: "Economy Location" }
+        ]);
+      }
+    } catch (err) {
+      console.error("Error fetching stall classes:", err);
+      // Fallback if API fails
+      setStallClasses([
+        { class_id: 1, class_name: "A", price: 1000, description: "Premium Location" },
+        { class_id: 2, class_name: "B", price: 750, description: "Standard Location" },
+        { class_id: 3, class_name: "C", price: 500, description: "Economy Location" }
+      ]);
+    }
+  };
 
   // Preview the map
   const handleFileSelect = (e) => {
@@ -31,10 +62,23 @@ export default function Market1() {
   // Add a stall
   const addStall = () => {
     const newCount = stallCount + 1;
+    const defaultClass = stallClasses.find(cls => cls.class_name === "C") || stallClasses[0];
+    
     setStallCount(newCount);
     setStalls([
       ...stalls,
-      { name: `Stall ${newCount}`, pos_x: 50, pos_y: 50, status: "available", price: 0, height: 0, length: 0, width: 0 }
+      { 
+        name: `Stall ${newCount}`, 
+        pos_x: 50, 
+        pos_y: 50, 
+        status: "available", 
+        class_id: defaultClass.class_id,
+        class_name: defaultClass.class_name,
+        price: defaultClass.price,
+        height: 0, 
+        length: 0, 
+        width: 0 
+      }
     ]);
   };
 
@@ -104,8 +148,8 @@ export default function Market1() {
     setSelectedStallIndex(index);
     const viewportX = e.clientX;
     const viewportY = e.clientY;
-    const modalWidth = 300;
-    const modalHeight = 400;
+    const modalWidth = 350;
+    const modalHeight = 500;
 
     let x = viewportX;
     let y = viewportY;
@@ -121,6 +165,25 @@ export default function Market1() {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       setModalOpen(false);
     }
+  };
+
+  // Update stall class
+  const updateStallClass = (class_id) => {
+    const selectedClass = stallClasses.find(cls => cls.class_id == class_id);
+    if (selectedClass) {
+      const updated = [...stalls];
+      updated[selectedStallIndex].class_id = selectedClass.class_id;
+      updated[selectedStallIndex].class_name = selectedClass.class_name;
+      // Don't auto-update price when class changes
+      setStalls(updated);
+    }
+  };
+
+  // Update price separately
+  const updateStallPrice = (price) => {
+    const updated = [...stalls];
+    updated[selectedStallIndex].price = parseFloat(price) || 0;
+    setStalls(updated);
   };
 
   return (
@@ -150,7 +213,8 @@ export default function Market1() {
           >
             <div className="stall-content">
               <div className="stall-name">{stall.name}</div>
-              <div className="stall-price">{stall.price > 0 ? `₱${stall.price}` : ""}</div>
+              <div className="stall-class">Class: {stall.class_name}</div>
+              <div className="stall-price">₱{stall.price}</div>
               <div className="stall-size">{stall.length}m × {stall.width}m × {stall.height}m</div>
             </div>
 
@@ -176,18 +240,33 @@ export default function Market1() {
             style={{ left: `${modalPos.x}px`, top: `${modalPos.y}px`, position: 'fixed' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h4>Set Stall Details</h4>
+            <h4>Set Stall Details - {stalls[selectedStallIndex]?.name}</h4>
 
-            <label>Price (₱)</label>
+            <label>Stall Class</label>
+            <select
+              value={stalls[selectedStallIndex]?.class_id || ""}
+              onChange={(e) => updateStallClass(e.target.value)}
+            >
+              {stallClasses.map((cls) => (
+                <option key={cls.class_id} value={cls.class_id}>
+                  Class {cls.class_name} - ₱{cls.price} ({cls.description})
+                </option>
+              ))}
+            </select>
+
+            <div className="current-class-info">
+              <strong>Selected: Class {stalls[selectedStallIndex]?.class_name}</strong>
+              <br />
+              <span>Suggested Price: ₱{stallClasses.find(cls => cls.class_id == stalls[selectedStallIndex]?.class_id)?.price || 0}</span>
+            </div>
+
+            <label>Custom Price (₱)</label>
             <input
               type="number"
               value={stalls[selectedStallIndex]?.price || 0}
-              onChange={(e) => {
-                const updated = [...stalls];
-                updated[selectedStallIndex].price = parseFloat(e.target.value) || 0;
-                setStalls(updated);
-              }}
+              onChange={(e) => updateStallPrice(e.target.value)}
               step="0.01"
+              min="0"
             />
 
             <label>Height (m)</label>
@@ -243,4 +322,4 @@ export default function Market1() {
       )}
     </div>
   );
-} 
+}

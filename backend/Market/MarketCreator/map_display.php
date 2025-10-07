@@ -5,25 +5,18 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// Enable error reporting temporarily for debugging
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 try {
-    // Include DB
     require_once __DIR__ . "/../../../db/Market/market_db.php";
 
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         throw new Exception("Only GET allowed");
     }
 
-    // Check if map_id is provided
     if (!isset($_GET['map_id'])) {
         throw new Exception("map_id parameter is required");
     }
@@ -39,11 +32,23 @@ try {
         throw new Exception("Map not found");
     }
 
-    // Fetch stalls for this map
+    // Fetch stalls for this map WITH CLASS INFORMATION
     $stmtStalls = $pdo->prepare("
-        SELECT id, name, pos_x, pos_y, price, height, length, width 
-        FROM stalls 
-        WHERE map_id = ?
+        SELECT 
+            s.id, 
+            s.name, 
+            s.pos_x, 
+            s.pos_y, 
+            s.price, 
+            s.height, 
+            s.length, 
+            s.width,
+            s.status,
+            s.class_id,
+            sc.class_name
+        FROM stalls s 
+        LEFT JOIN stall_classes sc ON s.class_id = sc.class_id 
+        WHERE s.map_id = ?
     ");
     $stmtStalls->execute([$mapId]);
     $stalls = $stmtStalls->fetchAll(PDO::FETCH_ASSOC);
@@ -65,3 +70,4 @@ try {
         "message" => $e->getMessage()
     ]);
 }
+?>

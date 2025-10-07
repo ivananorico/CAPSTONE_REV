@@ -5,25 +5,21 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept");
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// Enable error reporting temporarily for debugging
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 try {
-    // Include DB - CORRECTED PATH (3 levels up)
     require_once __DIR__ . "/../../../db/Market/market_db.php";
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception("Only POST allowed");
     }
 
-    // Check required inputs
     if (!isset($_POST['mapName']) || !isset($_FILES['mapImage']) || !isset($_POST['stalls'])) {
         throw new Exception("mapName, mapImage, and stalls are required");
     }
@@ -40,27 +36,25 @@ try {
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, $allowed)) throw new Exception("Invalid file type");
 
-    // Ensure uploads directory exists - also corrected to 3 levels up
     $uploadsDir = __DIR__ . "/../../../uploads/market/maps";
     if (!is_dir($uploadsDir)) mkdir($uploadsDir, 0755, true);
 
-    // Generate unique filename
     $filename = 'map_' . time() . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
     $target = $uploadsDir . '/' . $filename;
 
     if (!move_uploaded_file($file['tmp_name'], $target)) throw new Exception("Failed to move uploaded file");
 
-    $imagePath = "uploads/market/maps/" . $filename; // relative path for frontend
+    $imagePath = "uploads/market/maps/" . $filename;
 
     // Insert map
     $stmt = $pdo->prepare("INSERT INTO maps (name, file_path) VALUES (?, ?)");
     $stmt->execute([$mapName, $imagePath]);
     $mapId = $pdo->lastInsertId();
 
-    // Insert stalls - CORRECTED COLUMNS (removed status)
+    // Insert stalls - Use custom price exactly as provided
     $stmtStall = $pdo->prepare("
-        INSERT INTO stalls (map_id, name, pos_x, pos_y, price, height, length, width)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO stalls (map_id, name, pos_x, pos_y, price, height, length, width, status, class_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($stalls as $stall) {
@@ -69,17 +63,20 @@ try {
             $stall['name'] ?? 'Unnamed Stall',
             $stall['pos_x'] ?? 0,
             $stall['pos_y'] ?? 0,
-            $stall['price'] ?? 0,
+            $stall['price'] ?? 0, // Use custom price exactly as provided
             $stall['height'] ?? 0,
             $stall['length'] ?? 0,
-            $stall['width'] ?? 0
+            $stall['width'] ?? 0,
+            $stall['status'] ?? 'available',
+            $stall['class_id'] ?? 3 // Default to Class C
         ]);
     }
 
     echo json_encode([
         "status" => "success",
         "map_id" => (int)$mapId,
-        "image_path" => $imagePath
+        "image_path" => $imagePath,
+        "message" => "Map and stalls saved successfully"
     ]);
 } catch (Exception $e) {
     http_response_code(400);
@@ -88,3 +85,4 @@ try {
         "message" => $e->getMessage()
     ]);
 }
+?>
