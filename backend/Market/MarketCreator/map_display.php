@@ -47,7 +47,7 @@ try {
             s.class_id,
             sc.class_name
         FROM stalls s 
-        LEFT JOIN stall_classes sc ON s.class_id = sc.class_id 
+        LEFT JOIN stall_rights sc ON s.class_id = sc.class_id 
         WHERE s.map_id = ?
     ");
     $stmtStalls->execute([$mapId]);

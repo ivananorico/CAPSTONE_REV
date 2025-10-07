@@ -14,7 +14,7 @@ try {
     // Include DB - use the same path as your other files
     require_once __DIR__ . "/../../../db/Market/market_db.php";
 
-    $sql = "SELECT * FROM stall_classes ORDER BY price DESC";
+    $sql = "SELECT * FROM stall_rights ORDER BY price DESC";
     $result = $pdo->query($sql); // Use $pdo instead of $conn
 
     if ($result) {

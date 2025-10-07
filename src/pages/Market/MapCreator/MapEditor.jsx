@@ -49,7 +49,7 @@ export default function MapEditor() {
 
   const fetchStallClasses = async () => {
     try {
-      const res = await fetch(`${API_BASE}/get_stall_classes.php`);
+      const res = await fetch(`${API_BASE}/get_stall_rights.php`);
       const data = await res.json();
       if (data.status === "success") {
         setStallClasses(data.classes);

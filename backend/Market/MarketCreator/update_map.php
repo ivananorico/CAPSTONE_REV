@@ -21,7 +21,7 @@ try {
     }
 
     // Get the first available class ID as default
-    $defaultClassStmt = $pdo->query("SELECT class_id FROM stall_classes ORDER BY price ASC LIMIT 1");
+    $defaultClassStmt = $pdo->query("SELECT class_id FROM stall_rights ORDER BY price ASC LIMIT 1");
     $defaultClass = $defaultClassStmt->fetch(PDO::FETCH_ASSOC);
     $defaultClassId = $defaultClass ? $defaultClass['class_id'] : null;
 
